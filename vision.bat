@@ -156,7 +156,12 @@ if not exist ".env" (
 exit /b 0
 
 :force_open_registration
-powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+set "PS_EXE=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
+if not exist "%PS_EXE%" (
+  echo [WARN] PowerShell was not found. Set OPEN_REGISTRATION=true in .env if signup is blocked.
+  exit /b 0
+)
+"%PS_EXE%" -NoProfile -ExecutionPolicy Bypass -Command ^
   "$p = Join-Path '%ROOT%' '.env';" ^
   "$text = Get-Content -Raw -LiteralPath $p;" ^
   "if ($text -match '(?m)^OPEN_REGISTRATION=') { $text = $text -replace '(?m)^OPEN_REGISTRATION=.*$', 'OPEN_REGISTRATION=true' } else { $text += \"`r`nOPEN_REGISTRATION=true`r`n\" };" ^
