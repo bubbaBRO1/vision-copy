@@ -7,6 +7,8 @@ VISION is a self-hosted visual intelligence and OSINT workstation. It is built a
 - React/Vite frontend with case workspace, search, research, face database, collections, admin, settings, and system health.
 - FastAPI backend with auth, search orchestration, browser assist, case evidence, AI insights, exports, and health diagnostics.
 - Postgres, Redis, Ollama, backend, frontend, and nginx services through Docker Compose.
+- Open registration by default so local users can try the app immediately.
+- Better Auth is installed as a bridge-ready frontend dependency; the active runtime auth remains FastAPI JWT until a JS/TS auth sidecar is added.
 - Prompt/spec references used to shape the product:
   - `prompts/CLAUDE_CODE_UNIFIED_MASTER_PROMPT.md`
   - `prompts/BROWSER_ASSIST_MASTER_PROMPT.md`
@@ -17,6 +19,13 @@ VISION is a self-hosted visual intelligence and OSINT workstation. It is built a
 ## Quick Start
 
 Copy `.env.example` to `.env`, then set a real `JWT_SECRET` and any optional API keys you want to use.
+
+Or run the Windows launcher:
+
+```powershell
+cd C:\Users\bubba\Desktop\vision-copy
+.\vision.bat
+```
 
 ```powershell
 cd C:\Users\bubba\Desktop\vision-copy

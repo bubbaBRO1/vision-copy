@@ -76,7 +76,7 @@ services:
       VIRUSTOTAL_API_KEY: ${VIRUSTOTAL_API_KEY:-}
       HIBP_API_KEY: ${HIBP_API_KEY:-}
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
-      OPEN_REGISTRATION: ${OPEN_REGISTRATION:-false}
+      OPEN_REGISTRATION: ${OPEN_REGISTRATION:-true}
       UPLOAD_DIR: /tmp/vision-uploads
     volumes:
       - upload_data:/tmp/vision-uploads
