@@ -90,6 +90,7 @@ async def test_case_workspace_summarizes_project_assets(fake_token_for):
     assert data["stats"]["evidence"] == 1
     assert data["stats"]["verified_evidence"] == 1
     assert data["evidence"][0]["title"] == "Original source page"
+    assert data["sources"][0]["url"] == "https://example.com/source"
     assert data["timeline"][0]["kind"] in {"evidence", "search"}
 
 
@@ -165,6 +166,29 @@ async def test_case_ai_action_creates_labeled_insight(fake_token_for):
     assert data["action"] == "summary"
     assert data["disclaimer"]
     assert "AI-assisted" in data["content"]
+
+
+@pytest.mark.anyio
+async def test_case_ai_what_missing_action(fake_token_for):
+    from database import AsyncSessionLocal
+    from main import app
+    from models.search import Project
+
+    user_id = uuid.uuid4()
+    async with AsyncSessionLocal() as db:
+        project = Project(user_id=user_id, name="Gap case")
+        db.add(project)
+        await db.commit()
+        await db.refresh(project)
+        case_id = str(project.id)
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.post(f"/api/projects/{case_id}/ai/what_missing", headers=fake_token_for(user_id))
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["action"] == "what_missing"
+    assert "gap" in data["content"].lower()
 
 
 @pytest.mark.anyio

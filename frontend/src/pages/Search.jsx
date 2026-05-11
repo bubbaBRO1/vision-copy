@@ -153,6 +153,7 @@ export default function Search() {
   const [noteDraft, setNoteDraft] = useState('')
   const [browserRunId, setBrowserRunId] = useState(null)
   const [browserRun, setBrowserRun] = useState(null)
+  const [browserPlan, setBrowserPlan] = useState(null)
   const [geolocationBrief, setGeolocationBrief] = useState(null)
   const [browserOptions, setBrowserOptions] = useState({
     mode: 'isolated',
@@ -210,6 +211,25 @@ export default function Search() {
       .then(({ data }) => setGeolocationBrief(data))
       .catch(() => setGeolocationBrief(null))
   }, [currentSearchId, status])
+
+  useEffect(() => {
+    if (!selectedCluster?.items?.length) {
+      setBrowserPlan(null)
+      return
+    }
+    const urls = selectedCluster.items.slice(0, browserOptions.max_pages).map((item) => item.url).filter(Boolean)
+    if (!urls.length) {
+      setBrowserPlan(null)
+      return
+    }
+    api.post('/api/browser-assist/runs/plan', {
+      urls,
+      max_pages: browserOptions.max_pages,
+      objective: 'Inspect this result cluster, preserve source context, and extract cross-reference clues.',
+    })
+      .then(({ data }) => setBrowserPlan(data))
+      .catch(() => setBrowserPlan(null))
+  }, [selectedCluster, browserOptions.max_pages])
 
   useSSE(browserRunId ? `/api/browser-assist/runs/${browserRunId}/stream` : null, {
     enabled: !!browserRunId,
@@ -276,6 +296,7 @@ export default function Search() {
         is_incognito: browserOptions.is_incognito,
         confirm_incognito: browserOptions.confirm_incognito,
         persist_artifacts: browserOptions.persist_artifacts,
+        objective: 'Inspect this result cluster, preserve source context, and extract cross-reference clues.',
       }
       const { data } = await api.post('/api/browser-assist/runs', payload)
       setBrowserRunId(data.run_id)
@@ -472,6 +493,7 @@ export default function Search() {
                         onStart={() => startBrowserAssist(selectedCluster)}
                         run={browserRun}
                         onCancel={cancelBrowserAssist}
+                        plan={browserPlan}
                       />
                     </div>
                   </div>

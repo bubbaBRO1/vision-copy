@@ -208,6 +208,14 @@ async def _case_workspace(project: Project, db: AsyncSession) -> dict:
     scored = [item.confidence for item in evidence if item.confidence is not None]
     if scored:
         avg_confidence = round(sum(scored) / len(scored))
+    source_urls = []
+    for item in evidence:
+        if item.source_url and item.source_url not in source_urls:
+            source_urls.append(item.source_url)
+    for artifact in artifacts:
+        url = artifact.final_url or artifact.source_url
+        if url and url not in source_urls:
+            source_urls.append(url)
 
     return {
         "case": {
@@ -280,9 +288,20 @@ async def _case_workspace(project: Project, db: AsyncSession) -> dict:
                 "title": a.title,
                 "snippet": a.snippet,
                 "screenshot_path": a.screenshot_path,
+                "metadata": a.metadata_json or {},
+                "entities": (a.metadata_json or {}).get("analysis", {}).get("entities", {}),
+                "geo_clues": (a.metadata_json or {}).get("analysis", {}).get("geo_clues", []),
                 "created_at": a.created_at.isoformat(),
             }
             for a in artifacts
+        ],
+        "sources": [
+            {
+                "url": url,
+                "evidence_count": len([item for item in evidence if item.source_url == url]),
+                "artifact_count": len([a for a in artifacts if (a.final_url or a.source_url) == url]),
+            }
+            for url in source_urls[:250]
         ],
         "timeline": timeline[:150],
     }
@@ -436,7 +455,7 @@ async def run_case_ai_action(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    allowed = {"summary", "next_steps", "report", "source_review", "contradictions", "entities", "timeline"}
+    allowed = {"summary", "next_steps", "report", "source_review", "contradictions", "entities", "timeline", "what_missing"}
     if action not in allowed:
         raise HTTPException(404, "AI action not found")
     project = _owned_or_404(await db.get(Project, project_id), current_user.id)
@@ -464,6 +483,11 @@ async def run_case_ai_action(
         content = "AI-assisted contradiction scan: no automated contradictions detected; manually compare timestamps, domains, and identity claims."
     elif action == "entities":
         content = "AI-assisted entity extraction: review evidence titles, notes, source domains, face matches, and geolocation clues for people, places, and accounts."
+    elif action == "what_missing":
+        content = (
+            "AI-assisted gap scan: confirm the earliest source, preserve volatile pages, verify location clues, "
+            "resolve low-confidence matches, and add explicit provenance notes for every report-worthy claim."
+        )
     else:
         content = "AI-assisted timeline synthesis: order searches, evidence, browser captures, and report drafts by timestamp to preserve investigative context."
 

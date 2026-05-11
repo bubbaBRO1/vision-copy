@@ -141,11 +141,11 @@ Prioritize work in this order unless a concrete bug or blocker changes the order
 
 Use the companion prompts only for their subsystem-specific detail:
 
-- `BROWSER_ASSIST_MASTER_PROMPT.md`
+- `prompts/BROWSER_ASSIST_MASTER_PROMPT.md`
   - Browser Assist workflow, safeguards, and tester checks
-- `PIMEYES_LIKE_RESULTS_MASTER_PROMPT.md`
+- `prompts/PIMEYES_LIKE_RESULTS_MASTER_PROMPT.md`
   - clustered results workspace behavior and testing expectations
-- `VISION_FACE_PARITY_PROMPT.md`
+- `prompts/VISION_FACE_PARITY_PROMPT.md`
   - local face-search infrastructure, current-state truth, and future parity direction
 
 `CLAUDE_CODE_MASTER_PROMPT.md` is a compatibility shim only.

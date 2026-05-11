@@ -16,6 +16,7 @@ from database import get_db
 from models.search import BrowserAssistArtifact, BrowserAssistRun, Project, Search
 from routers.deps import get_current_user_or_guest
 from services.browser_assist import run_browser_assist, stream_browser_assist, validate_browser_assist_url
+from services.osint_intel import build_browser_followup_plan
 from services import rate_limiter
 
 router = APIRouter(prefix="/api/browser-assist", tags=["browser-assist"])
@@ -36,11 +37,36 @@ class BrowserAssistCreateRequest(BaseModel):
     is_incognito: bool = False
     confirm_incognito: bool = False
     persist_artifacts: bool = True
+    objective: str | None = None
+
+
+class BrowserAssistPlanRequest(BaseModel):
+    urls: list[str] = Field(default_factory=list, min_length=1, max_length=10)
+    max_pages: int = Field(default=5, ge=1, le=10)
+    objective: str | None = None
 
 
 def _owned_resource_or_404(resource, current_user):
     if not resource or resource.user_id != current_user.id:
         raise HTTPException(404, "Run not found")
+
+
+@router.post("/runs/plan")
+async def plan_run(
+    request: BrowserAssistPlanRequest,
+    current_user=Depends(get_current_user_or_guest),
+):
+    normalized_urls = []
+    for url in request.urls[: request.max_pages]:
+        try:
+            normalized_urls.append(validate_browser_assist_url(url))
+        except ValueError as exc:
+            raise HTTPException(400, str(exc))
+    return build_browser_followup_plan(
+        [{"url": url} for url in normalized_urls],
+        max_pages=request.max_pages,
+        objective=request.objective,
+    )
 
 
 @router.post("/runs", status_code=201)
@@ -81,7 +107,15 @@ async def create_run(
         mode=request.options.mode,
         approved_urls=normalized_urls,
         visited_urls=[],
-        run_log=[{"message": "Run queued", "urls": normalized_urls}],
+        run_log=[{
+            "message": "Run queued",
+            "urls": normalized_urls,
+            "mission_plan": build_browser_followup_plan(
+                [{"url": url} for url in normalized_urls],
+                max_pages=request.options.max_pages,
+                objective=request.objective,
+            ),
+        }],
         is_incognito=request.is_incognito,
         persist_artifacts=request.persist_artifacts and not request.is_incognito,
     )
@@ -111,6 +145,9 @@ async def get_run(run_id: str, current_user=Depends(get_current_user_or_guest), 
             "snippet": a.snippet,
             "screenshot_path": a.screenshot_path,
             "metadata": a.metadata_json,
+            "entities": (a.metadata_json or {}).get("analysis", {}).get("entities", {}),
+            "geo_clues": (a.metadata_json or {}).get("analysis", {}).get("geo_clues", []),
+            "recommended_actions": (a.metadata_json or {}).get("analysis", {}).get("recommended_actions", []),
         }
         for a in artifact_result.scalars().all()
     ]

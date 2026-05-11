@@ -11,6 +11,7 @@ from sqlalchemy import select
 from config import get_settings
 from database import AsyncSessionLocal
 from models.search import BrowserAssistArtifact, BrowserAssistRun
+from services.osint_intel import analyze_browser_artifact
 
 UTC = timezone.utc
 settings = get_settings()
@@ -93,6 +94,12 @@ async def run_browser_assist(run_id: uuid.UUID):
             run.visited_urls = visited
 
             if run.persist_artifacts:
+                metadata = dict(artifact_payload["metadata"] or {})
+                metadata["analysis"] = analyze_browser_artifact(
+                    artifact_payload["final_url"] or url,
+                    artifact_payload["title"],
+                    artifact_payload["snippet"],
+                )
                 db.add(
                     BrowserAssistArtifact(
                         run_id=run_id,
@@ -102,7 +109,7 @@ async def run_browser_assist(run_id: uuid.UUID):
                         title=artifact_payload["title"],
                         snippet=artifact_payload["snippet"],
                         screenshot_path=artifact_payload["screenshot_path"],
-                        metadata_json=artifact_payload["metadata"],
+                        metadata_json=metadata,
                     )
                 )
 

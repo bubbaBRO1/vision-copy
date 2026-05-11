@@ -1,4 +1,5 @@
 import { ExternalLink, Globe, MonitorPlay, Shield, Square } from 'lucide-react'
+import { normalizeBrowserPlan } from '../../utils/resultIntel'
 
 export function BrowserAssistPanel({
   cluster,
@@ -8,8 +9,10 @@ export function BrowserAssistPanel({
   onStart,
   run,
   onCancel,
+  plan,
 }) {
   const canStart = !!cluster?.items?.some((item) => item.url)
+  const missionPlan = normalizeBrowserPlan(plan || run?.run_log?.[0]?.mission_plan || {})
 
   return (
     <div className="card p-4 space-y-4">
@@ -143,6 +146,34 @@ export function BrowserAssistPanel({
         </button>
       </div>
 
+      {canStart && (
+        <div className="space-y-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>
+            Mission plan
+          </p>
+          <div className="rounded-xl p-3 space-y-2" style={{ background: 'var(--surface-2)' }}>
+            <p className="text-xs font-medium">{missionPlan.objective}</p>
+            {!!missionPlan.pages_to_visit.length && (
+              <p className="text-[11px] break-all" style={{ color: 'var(--text-secondary)' }}>
+                {missionPlan.pages_to_visit.length} approved page{missionPlan.pages_to_visit.length !== 1 ? 's' : ''}: {missionPlan.pages_to_visit.slice(0, 2).join(', ')}
+              </p>
+            )}
+            {!!missionPlan.inspect_for.length && (
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {missionPlan.inspect_for.slice(0, 4).map((item) => (
+                  <span key={item} className="px-2 py-0.5 rounded-full text-[11px]" style={{ background: 'var(--surface-3)', color: 'var(--text-secondary)' }}>
+                    {item}
+                  </span>
+                ))}
+              </div>
+            )}
+            <p className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>
+              {missionPlan.safety_note}
+            </p>
+          </div>
+        </div>
+      )}
+
       {run && (
         <>
           {!!run.approved_urls?.length && (
@@ -223,6 +254,20 @@ export function BrowserAssistPanel({
                         </p>
                       )}
                     </div>
+                    {!!artifact.geo_clues?.length && (
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {artifact.geo_clues.slice(0, 4).map((clue) => (
+                          <span key={`${artifact.id}-${clue.label}`} className="px-2 py-0.5 rounded-full text-[11px]" style={{ background: 'rgba(10,132,255,0.12)', color: 'var(--blue)' }}>
+                            {clue.label}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {!!artifact.recommended_actions?.length && (
+                      <p className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>
+                        {artifact.recommended_actions[0]}
+                      </p>
+                    )}
                     <div className="flex items-center gap-2 flex-wrap">
                       {(artifact.final_url || artifact.source_url) && (
                         <a

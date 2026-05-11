@@ -1,4 +1,5 @@
 import { ExternalLink, EyeOff, FolderPlus, Layers3, MonitorPlay, StickyNote } from 'lucide-react'
+import { clusterIntel, laneTone } from '../../utils/resultIntel'
 
 function domainFor(url) {
   try {
@@ -10,8 +11,10 @@ function domainFor(url) {
 
 export function ResultClusterCard({ cluster, active, onSelect, onSaveToggle, onHideToggle, onBrowserAssist }) {
   const top = cluster.top_result
-  const score = Math.round(top?.similarity_pct || 0)
+  const intel = clusterIntel(cluster)
+  const score = intel.score
   const domain = top?.source_domain || domainFor(top?.url || '')
+  const lane = laneTone(intel.lane)
 
   return (
     <button
@@ -40,7 +43,7 @@ export function ResultClusterCard({ cluster, active, onSelect, onSaveToggle, onH
           </div>
           <div className="text-right">
             <p className="text-lg font-bold" style={{ color: 'var(--blue)' }}>{score}</p>
-            <p className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>score</p>
+            <p className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>{intel.matchLabel}</p>
           </div>
         </div>
 
@@ -54,9 +57,21 @@ export function ResultClusterCard({ cluster, active, onSelect, onSaveToggle, onH
               {cluster.score_label}
             </span>
           )}
+          <span className="px-2 py-0.5 rounded-full" style={{ background: lane.bg, color: lane.color }}>
+            {lane.label}
+          </span>
+          <span className="px-2 py-0.5 rounded-full" style={{ background: 'var(--surface-2)', color: 'var(--text-secondary)' }}>
+            Source {intel.credibilityLabel}
+          </span>
           {cluster.saved && <span className="px-2 py-0.5 rounded-full" style={{ background: 'rgba(48,209,88,0.12)', color: 'var(--green)' }}>Saved</span>}
           {cluster.hidden && <span className="px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,159,10,0.12)', color: 'var(--orange)' }}>Hidden</span>}
         </div>
+
+        {!!intel.locationClues.length && (
+          <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+            Location clues: {intel.locationClues.slice(0, 2).map((clue) => clue.label).join(', ')}
+          </p>
+        )}
 
         {!!cluster.engines?.length && (
           <div className="flex items-center gap-1.5 flex-wrap text-[11px]">

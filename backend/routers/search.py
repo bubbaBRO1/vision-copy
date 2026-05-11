@@ -15,6 +15,7 @@ from models.user import User, UserRole
 from routers.deps import get_current_user, get_current_user_optional
 from schemas.search import SearchResponse, SearchResultResponse, SearchHistoryItem
 from services.browser_assist import normalize_result_url
+from services.osint_intel import analyze_result_cluster
 from services import search_service
 from services.rate_limiter import check_rate_limit
 
@@ -369,11 +370,60 @@ async def get_search_results(
             "hidden": state.hidden if state else False,
             "note": state.note if state else None,
         }
+        intelligence = analyze_result_cluster(payload)
+        payload.update(intelligence)
         if not include_hidden and payload["hidden"]:
             continue
         final.append(payload)
 
     return {"results": final, "total_clusters": len(final)}
+
+
+@router.get("/search/{search_id}/intel")
+async def get_search_intel(
+    search_id: str,
+    current_user: User | None = Depends(get_current_user_optional),
+    db: AsyncSession = Depends(get_db),
+):
+    search = await db.get(Search, uuid.UUID(search_id))
+    if not search:
+        raise HTTPException(404, "Search not found")
+    _check_search_access(search, current_user)
+    if not search.results_json:
+        raise HTTPException(404, "No results yet")
+
+    clusters = [dict(cluster, **analyze_result_cluster(cluster)) for cluster in _cluster_results(_flatten_results(search.results_json))]
+    location = _normalize_geolocation_payload(search.results_json.get("Geolocation", {}))
+    entity_domains = sorted({
+        domain
+        for cluster in clusters
+        for domain in (cluster.get("entities") or {}).get("domains", [])
+    })[:20]
+    contradiction_hints = [
+        hint
+        for cluster in clusters
+        for hint in cluster.get("contradiction_hints", [])
+    ][:20]
+    recommended_next_steps = [
+        "Review the strongest clusters first and reject weak reposts",
+        "Run Browser Assist on source-like pages to capture artifacts",
+        "Promote only evidence-backed findings into the case workspace",
+    ]
+    if location.get("what_to_verify_next"):
+        recommended_next_steps.extend(location["what_to_verify_next"][:3])
+    return {
+        "search_id": str(search.id),
+        "filename": search.filename,
+        "cluster_count": len(clusters),
+        "strong_matches": len([c for c in clusters if c.get("triage_lane") == "strong_match"]),
+        "possible_matches": len([c for c in clusters if c.get("triage_lane") == "possible_match"]),
+        "entity_clues": {"domains": entity_domains},
+        "location_hints": location,
+        "contradictions": contradiction_hints,
+        "recommended_next_steps": recommended_next_steps[:8],
+        "clusters": clusters[:25],
+        "disclaimer": "OSINT intelligence is an investigative aid, not proof. Verify claims against source provenance.",
+    }
 
 
 @router.patch("/search/{search_id}/results/state")

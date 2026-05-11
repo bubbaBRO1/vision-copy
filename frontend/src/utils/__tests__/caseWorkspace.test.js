@@ -11,6 +11,7 @@ describe('normalizeWorkspace', () => {
     const workspace = normalizeWorkspace({
       case: { name: 'Source case' },
       evidence: [{ title: 'Lead', status: 'verified', confidence: 91 }],
+      sources: [{ url: 'https://example.com' }],
       timeline: [
         { title: 'Old', at: '2026-01-01T00:00:00Z' },
         { title: 'New', at: '2026-01-02T00:00:00Z' },
@@ -19,6 +20,7 @@ describe('normalizeWorkspace', () => {
 
     expect(workspace.case.name).toBe('Source case')
     expect(workspace.stats.evidence).toBe(1)
+    expect(workspace.sources).toHaveLength(1)
     expect(workspace.timeline[0].title).toBe('New')
   })
 })

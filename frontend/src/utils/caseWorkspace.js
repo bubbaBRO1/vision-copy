@@ -28,6 +28,7 @@ export function normalizeWorkspace(raw = {}) {
     reports: Array.isArray(raw.reports) ? raw.reports : [],
     ai_insights: Array.isArray(raw.ai_insights) ? raw.ai_insights : [],
     browser_artifacts: Array.isArray(raw.browser_artifacts) ? raw.browser_artifacts : [],
+    sources: Array.isArray(raw.sources) ? raw.sources : [],
     timeline,
   }
 }

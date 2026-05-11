@@ -59,6 +59,28 @@ async def test_browser_assist_rejects_private_network_url(monkeypatch, fake_toke
 
 
 @pytest.mark.anyio
+async def test_browser_assist_plan_is_bounded_and_safe(fake_token_for):
+    from main import app
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.post(
+            "/api/browser-assist/runs/plan",
+            headers=fake_token_for(uuid.uuid4()),
+            json={
+                "urls": ["https://example.com/a", "https://example.org/b"],
+                "max_pages": 1,
+                "objective": "Find source context",
+            },
+        )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["mode"] == "bounded_browser_assist"
+    assert payload["pages_to_visit"] == ["https://example.com/a"]
+    assert payload["experimental_desktop_control"]["available"] is False
+
+
+@pytest.mark.anyio
 async def test_browser_assist_owner_only_read(monkeypatch, fake_token_for):
     from database import AsyncSessionLocal
     from main import app
@@ -243,3 +265,46 @@ async def test_geolocation_endpoint_returns_normalized_brief(fake_token_for):
     assert payload["primary"]["confidence_label"] == "Likely"
     assert payload["evidence"]
     assert payload["location_signals"]
+
+
+@pytest.mark.anyio
+async def test_search_intel_endpoint_returns_cluster_brief(fake_token_for):
+    from database import AsyncSessionLocal
+    from main import app
+    from models.search import Search, SearchStatus
+
+    user_id = uuid.uuid4()
+
+    async with AsyncSessionLocal() as db:
+        search = Search(
+            user_id=user_id,
+            filename="intel.jpg",
+            file_hash="intel123",
+            file_path="/tmp/intel.jpg",
+            status=SearchStatus.done,
+            results_json={
+                "Reverse Image Search": {
+                    "results": [
+                        {"url": "https://example.com/source-new-york", "title": "Original New York source", "similarity_pct": 93},
+                    ]
+                },
+                "web_scrapers": {
+                    "GoogleLensScraper": [
+                        {"url": "https://example.com/source-new-york", "title": "Original New York source", "similarity_pct": 91}
+                    ]
+                },
+            },
+        )
+        db.add(search)
+        await db.commit()
+        await db.refresh(search)
+        search_id = str(search.id)
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.get(f"/api/search/{search_id}/intel", headers=fake_token_for(user_id))
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["cluster_count"] == 1
+    assert payload["clusters"][0]["match_strength"]["label"] == "Very strong"
+    assert payload["recommended_next_steps"]

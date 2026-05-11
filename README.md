@@ -8,11 +8,11 @@ VISION is a self-hosted visual intelligence and OSINT workstation. It is built a
 - FastAPI backend with auth, search orchestration, browser assist, case evidence, AI insights, exports, and health diagnostics.
 - Postgres, Redis, Ollama, backend, frontend, and nginx services through Docker Compose.
 - Prompt/spec references used to shape the product:
-  - `CLAUDE_CODE_UNIFIED_MASTER_PROMPT.md`
-  - `BROWSER_ASSIST_MASTER_PROMPT.md`
-  - `PIMEYES_LIKE_RESULTS_MASTER_PROMPT.md`
-  - `VISION_FACE_PARITY_PROMPT.md`
-  - `Already used prompts/VISION_MASTER_PROMPT_V2.md`
+  - `prompts/CLAUDE_CODE_UNIFIED_MASTER_PROMPT.md`
+  - `prompts/BROWSER_ASSIST_MASTER_PROMPT.md`
+  - `prompts/PIMEYES_LIKE_RESULTS_MASTER_PROMPT.md`
+  - `prompts/VISION_FACE_PARITY_PROMPT.md`
+  - `prompts/VISION_MASTER_PROMPT_V2.md`
 
 ## Quick Start
 

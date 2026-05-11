@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import {
   ArrowLeft, Bot, Brain, CheckCircle2, Clock, Download, ExternalLink, FileText,
   Filter, GitBranch, Globe, NotebookPen, Plus, ScanSearch, ShieldAlert, Sparkles,
-  Trash2, XCircle,
+  Trash2, User, XCircle,
 } from 'lucide-react'
 import api from '../utils/api'
 import toast from 'react-hot-toast'
@@ -12,6 +12,9 @@ import { buildCaseReport, evidenceStatusTone, filterEvidence, normalizeWorkspace
 const TABS = [
   { id: 'overview', label: 'Overview', icon: GitBranch },
   { id: 'evidence', label: 'Evidence', icon: CheckCircle2 },
+  { id: 'sources', label: 'Sources', icon: Globe },
+  { id: 'entities', label: 'Entities', icon: GitBranch },
+  { id: 'faces', label: 'Faces', icon: User },
   { id: 'timeline', label: 'Timeline', icon: Clock },
   { id: 'ai', label: 'AI', icon: Brain },
   { id: 'report', label: 'Report', icon: FileText },
@@ -25,6 +28,7 @@ const AI_ACTIONS = [
   { id: 'contradictions', label: 'Contradictions' },
   { id: 'entities', label: 'Extract entities' },
   { id: 'timeline', label: 'Timeline synthesis' },
+  { id: 'what_missing', label: 'What am I missing?' },
 ]
 
 function Stat({ label, value, icon: Icon, color = 'var(--blue)' }) {
@@ -242,6 +246,50 @@ export default function ProjectDetail() {
         )}
 
         {tab === 'timeline' && <section className="card p-5"><Timeline items={workspace.timeline} /></section>}
+
+        {tab === 'sources' && (
+          <section className="card p-5">
+            <h2 className="text-sm font-semibold mb-4">Source List</h2>
+            {workspace.sources.length === 0 ? <Empty label="No sources captured yet." /> : (
+              <div className="space-y-2">
+                {workspace.sources.map((source) => (
+                  <a key={source.url} href={source.url} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-xl p-3" style={{ background: 'var(--surface-2)' }}>
+                    <Globe size={14} style={{ color: 'var(--blue)' }} />
+                    <span className="text-sm break-all flex-1">{source.url}</span>
+                    <span className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>
+                      {source.evidence_count} evidence / {source.artifact_count} artifacts
+                    </span>
+                    <ExternalLink size={12} style={{ color: 'var(--text-tertiary)' }} />
+                  </a>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
+        {tab === 'entities' && (
+          <section className="card p-5">
+            <h2 className="text-sm font-semibold mb-4">Entities</h2>
+            {workspace.entities.length === 0 ? <Empty label="No entities extracted yet. Run the entity extraction analyst action or Browser Assist." /> : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                {workspace.entities.map((entity) => (
+                  <div key={entity.id} className="rounded-xl p-3" style={{ background: 'var(--surface-2)' }}>
+                    <p className="text-sm font-semibold">{entity.label}</p>
+                    <p className="text-xs mt-1 capitalize" style={{ color: 'var(--text-secondary)' }}>{entity.entity_type} - {entity.confidence ?? 'n/a'} confidence</p>
+                    {entity.notes && <p className="text-xs mt-2" style={{ color: 'var(--text-secondary)' }}>{entity.notes}</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
+        {tab === 'faces' && (
+          <section className="card p-5">
+            <h2 className="text-sm font-semibold mb-4">Faces</h2>
+            <Empty label="Face matches remain local/private and should be promoted as evidence only after consent-aware verification." />
+          </section>
+        )}
 
         {tab === 'ai' && (
           <div className="grid grid-cols-1 xl:grid-cols-[320px_1fr] gap-4">

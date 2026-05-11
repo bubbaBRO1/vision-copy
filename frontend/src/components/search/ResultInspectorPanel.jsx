@@ -1,4 +1,5 @@
 import { ExternalLink, Globe, Layers3, MapPin, Plus, StickyNote } from 'lucide-react'
+import { clusterIntel, laneTone } from '../../utils/resultIntel'
 
 function formatScore(item) {
   return Math.round(item?.similarity_pct || 0)
@@ -25,6 +26,8 @@ export function ResultInspectorPanel({
   }
 
   const top = cluster.top_result
+  const intel = clusterIntel(cluster)
+  const lane = laneTone(intel.lane)
 
   return (
     <div className="card p-4 space-y-4 sticky top-0">
@@ -38,6 +41,17 @@ export function ResultInspectorPanel({
             {cluster.ranking_reasons.join(' · ')}
           </p>
         )}
+        <div className="flex items-center gap-2 mt-3 flex-wrap text-[11px]">
+          <span className="px-2 py-1 rounded-full" style={{ background: lane.bg, color: lane.color }}>
+            {lane.label}
+          </span>
+          <span className="px-2 py-1 rounded-full" style={{ background: 'var(--surface-2)', color: 'var(--text-secondary)' }}>
+            Match: {intel.matchLabel}
+          </span>
+          <span className="px-2 py-1 rounded-full" style={{ background: 'var(--surface-2)', color: 'var(--text-secondary)' }}>
+            Source: {intel.credibilityLabel}{intel.credibilityScore !== null ? ` ${intel.credibilityScore}` : ''}
+          </span>
+        </div>
       </div>
 
       <div className="space-y-2 text-xs">
@@ -67,6 +81,57 @@ export function ResultInspectorPanel({
             <span>Engines: {cluster.engines.map((engine) => engine.replace('Scraper', '')).join(', ')}</span>
           </div>
         )}
+      </div>
+
+      <div className="space-y-2">
+        <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>
+          Analyst brief
+        </p>
+        <div className="grid grid-cols-1 gap-2 text-xs">
+          {intel.source_credibility?.basis && (
+            <div className="rounded-lg p-2.5" style={{ background: 'var(--surface-2)' }}>
+              {intel.source_credibility.basis}
+            </div>
+          )}
+          {!!intel.nextSteps.length && intel.nextSteps.slice(0, 4).map((step) => (
+            <div key={step} className="rounded-lg p-2.5" style={{ background: 'var(--surface-2)', color: 'var(--text-secondary)' }}>
+              {step}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {(!!intel.locationClues.length || !!intel.contradictionHints.length) && (
+        <div className="space-y-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>
+            Clues and contradictions
+          </p>
+          {!!intel.locationClues.length && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {intel.locationClues.slice(0, 6).map((clue) => (
+                <span key={`${clue.type}-${clue.label}`} className="px-2 py-1 rounded-full text-[11px]" style={{ background: 'rgba(10,132,255,0.12)', color: 'var(--blue)' }}>
+                  {clue.label}
+                </span>
+              ))}
+            </div>
+          )}
+          {intel.contradictionHints.map((hint) => (
+            <div key={hint} className="rounded-lg p-2.5 text-xs" style={{ background: 'rgba(255,159,10,0.1)', color: 'var(--orange)' }}>
+              {hint}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="space-y-2">
+        <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>
+          Provenance
+        </p>
+        <div className="rounded-lg p-2.5 text-[11px] space-y-1 break-all" style={{ background: 'var(--surface-2)', color: 'var(--text-secondary)' }}>
+          <p>Source: {intel.provenance.source_url || top?.url || 'n/a'}</p>
+          <p>Domain: {intel.provenance.source_domain || top?.source_domain || 'n/a'}</p>
+          <p>Cluster: {intel.provenance.cluster_size || cluster.cluster_size || 1} hit(s)</p>
+        </div>
       </div>
 
       <div className="space-y-2">
