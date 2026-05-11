@@ -1,7 +1,7 @@
 """Add case workspace tables
 
 Revision ID: 0005_case_workspace
-Revises: 0004, 0004_memory
+Revises: 0004_memory
 Create Date: 2026-05-11
 """
 
@@ -13,7 +13,7 @@ from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 
 revision: str = "0005_case_workspace"
-down_revision: Union[str, tuple[str, str], None] = ("0004", "0004_memory")
+down_revision: Union[str, tuple[str, str], None] = "0004_memory"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

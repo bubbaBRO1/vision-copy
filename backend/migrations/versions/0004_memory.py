@@ -1,7 +1,7 @@
 """Add user_memory table
 
 Revision ID: 0004_memory
-Revises: 0003
+Revises: 0004
 Create Date: 2026-05-07
 """
 from typing import Sequence, Union
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 revision: str = "0004_memory"
-down_revision: Union[str, None] = "0003"
+down_revision: Union[str, None] = "0004"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

@@ -1,7 +1,7 @@
 """Add browser assist and search result state tables
 
 Revision ID: 0004
-Revises: 0003
+Revises: 0002_project_notes
 Create Date: 2026-05-08
 """
 
@@ -13,7 +13,7 @@ from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 
 revision: str = "0004"
-down_revision: Union[str, None] = "0003"
+down_revision: Union[str, None] = "0002_project_notes"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
