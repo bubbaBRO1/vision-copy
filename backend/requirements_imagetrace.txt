@@ -1,0 +1,126 @@
+# ImageTrace 2.0 — Autonomous Reverse Image OSINT
+# Install: pip install -r requirements.txt
+# Note: pytesseract also requires Tesseract OCR binary:
+#   Windows: https://github.com/UB-Mannheim/tesseract/wiki
+#   Linux:   sudo apt install tesseract-ocr
+#   macOS:   brew install tesseract
+
+# Core
+requests>=2.31.0
+Pillow>=10.0.0
+numpy>=1.24.0
+
+# Metadata
+exifread>=3.0.0
+piexif>=1.1.3
+
+# Computer vision & face
+opencv-python>=4.8.0
+deepface>=0.0.90
+face-recognition>=1.3.0
+
+# Face recognition — onnxruntime is required by insightface
+# insightface itself is NOT listed here because it requires a C++ compiler on Windows
+# setup.bat handles insightface installation via a pre-built wheel automatically
+onnxruntime>=1.16.0
+
+# OCR & barcodes
+pytesseract>=0.3.10
+pyzbar>=0.1.9
+
+# Steganography
+stegano>=0.11.2
+
+# Browser automation (reverse image search + face DB search)
+selenium>=4.15.0
+webdriver-manager>=4.0.1
+
+# Terminal UI
+rich>=13.6.0
+
+# Background scheduling (--watch mode)
+schedule>=1.2.0
+
+# Webhook notifications
+discord-webhook>=1.3.0
+
+# QR code generation (used by test suite to create fixture images)
+qrcode[pil]>=7.4.2
+
+# Perceptual image hashing (pHash/dHash/wHash for near-duplicate detection)
+imagehash>=4.3.1
+
+# NSFW detection (ONNX-based, no C++ compiler needed)
+nudenet>=3.4.2
+
+# IPTC metadata extraction
+iptcinfo3>=2.1.4
+
+# Language detection from OCR text (offline, pure Python)
+langdetect>=1.0.9
+
+# Phone number parsing + region identification (offline)
+phonenumbers>=8.13.0
+
+# Astronomical calculations for sun angle geolocation
+ephem>=4.1.5
+
+# PDF export from HTML dashboard (optional — only needed for --export-pdf)
+# weasyprint>=60.0  # uncomment and install separately if needed (has system deps)
+
+# ── Geolocation v2 ────────────────────────────────────────────────────────────
+
+# Solar position calculations (replaces ephem; ±0.01° accuracy; Windows wheel on PyPI)
+pvlib>=0.10.0
+
+# Offline timezone lookup from lat/lon (2MB data file, pure Python, no API)
+timezonefinder>=6.2.0
+
+# OpenStreetMap Overpass API wrapper (OSM POI queries from GPS coords)
+overpy>=0.7.0
+
+# ── Web Intelligence (Stage 10) ───────────────────────────────────────────────
+
+# Best-in-class article/content extraction from URLs (pure Python)
+trafilatura>=1.6.0
+
+# WHOIS domain lookups (pure Python, Windows wheel on PyPI)
+python-whois>=0.9.0
+
+# Google search without API key (pure Python)
+googlesearch-python>=1.2.3
+
+# DNS queries: A/MX/TXT/NS records (pure Python; may already be installed)
+dnspython>=2.4.0
+
+# ── Domain & IP Intelligence (Stage 11) ──────────────────────────────────────
+
+# Shodan Python SDK (free tier: 100 queries/month; set SHODAN_API_KEY in .env)
+shodan>=1.28.0
+
+# VirusTotal Python SDK (free: 500/day, 4/min; set VIRUSTOTAL_API_KEY in .env)
+vt-py>=0.17.5
+
+# ── Advanced AI Analysis (Stage 12) ──────────────────────────────────────────
+# NOTE: These are HEAVY — each pulls large models on first run.
+# All are guarded with try/except ImportError — pipeline runs fine without them.
+
+# Per-face age/gender/emotion/race estimation (pulls TensorFlow/PyTorch on install)
+# deepface>=0.0.90  # already listed above — v2 uses same package
+
+# Zero-shot scene + country classification via CLIP (ViT-B/32, ~600MB model download)
+# open-clip-torch>=2.20.0  # uncomment to enable CLIP country hints
+
+# Multi-language OCR (80+ languages, much better than Tesseract for non-Latin scripts)
+# paddleocr>=2.7.0          # uncomment to enable PaddleOCR (pulls PaddlePaddle ~2GB)
+# paddlepaddle>=2.5.0       # required by paddleocr
+
+# 80-language OCR fallback (lighter than PaddleOCR; Windows wheel on PyPI)
+easyocr>=1.7.0
+
+# ── Social OSINT helpers (Stage 9) ───────────────────────────────────────────
+# These are called as subprocesses if installed in PATH — not imported directly.
+# Install separately:
+#   pip install maigret       # 3000+ site username search
+#   pip install holehe        # email registered on 120 sites
+#   pip install phoneinfoga   # phone number OSINT (or download binary from GitHub)

@@ -1,0 +1,276 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Apple dark surfaces */
+  --surface-0: #000000;
+  --surface-1: #1C1C1E;
+  --surface-2: #2C2C2E;
+  --surface-3: #3A3A3C;
+  --surface-4: #48484A;
+  --surface-5: #636366;
+
+  /* iOS system colors */
+  --blue:   #0A84FF;
+  --green:  #30D158;
+  --red:    #FF453A;
+  --orange: #FF9F0A;
+  --yellow: #FFD60A;
+  --indigo: #5E5CE6;
+  --teal:   #40CBE0;
+  --purple: #BF5AF2;
+
+  /* Text */
+  --text-primary:    #FFFFFF;
+  --text-secondary:  rgba(235, 235, 245, 0.6);
+  --text-tertiary:   rgba(235, 235, 245, 0.3);
+
+  /* Borders */
+  --border:       rgba(84, 84, 88, 0.65);
+  --border-light: rgba(84, 84, 88, 0.36);
+
+  /* Glass */
+  --glass-bg:     rgba(28, 28, 30, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.08);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.3);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.5), 0 4px 6px rgba(0,0,0,0.3);
+  --shadow-xl: 0 20px 25px rgba(0,0,0,0.5), 0 8px 10px rgba(0,0,0,0.3);
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+
+  /* Legacy aliases so old code doesn't break immediately */
+  --bg-primary:   var(--surface-1);
+  --bg-secondary: var(--surface-2);
+  --bg-card:      var(--surface-3);
+  --accent-green: var(--green);
+  --accent-cyan:  var(--blue);
+  --accent-red:   var(--red);
+  --accent-yellow: var(--yellow);
+  --text-dim:     var(--text-secondary);
+  --border-old:   var(--border);
+}
+
+[data-theme="light"] {
+  --surface-0: #F2F2F7;
+  --surface-1: #F2F2F7;
+  --surface-2: #FFFFFF;
+  --surface-3: #F2F2F7;
+  --surface-4: #E5E5EA;
+  --surface-5: #C7C7CC;
+
+  --blue:   #007AFF;
+  --green:  #34C759;
+  --red:    #FF3B30;
+  --orange: #FF9500;
+  --yellow: #FFCC00;
+
+  --text-primary:   #000000;
+  --text-secondary: rgba(60, 60, 67, 0.6);
+  --text-tertiary:  rgba(60, 60, 67, 0.3);
+
+  --border:       rgba(60, 60, 67, 0.18);
+  --border-light: rgba(60, 60, 67, 0.1);
+
+  --glass-bg:     rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(0, 0, 0, 0.06);
+
+  --bg-primary:   var(--surface-1);
+  --bg-secondary: var(--surface-2);
+  --bg-card:      var(--surface-3);
+  --text-dim:     var(--text-secondary);
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--surface-2); }
+::-webkit-scrollbar-thumb { background: var(--surface-4); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--surface-5); }
+
+/* Card */
+.card {
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-hover {
+  transition: background 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+.card-hover:hover {
+  background: var(--surface-4);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(10, 132, 255, 0.3);
+}
+
+/* Glass */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--glass-border);
+}
+
+/* Monospace data */
+.mono { font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', ui-monospace, monospace; }
+
+/* Stage status */
+.stage-pending { color: var(--text-tertiary); }
+.stage-running { color: var(--blue); }
+.stage-done    { color: var(--green); }
+.stage-failed  { color: var(--red); }
+
+/* Confidence gauge colors */
+.conf-very-high { color: var(--green); }
+.conf-high      { color: var(--blue); }
+.conf-moderate  { color: var(--orange); }
+.conf-low       { color: var(--red); }
+.conf-speculative { color: var(--red); }
+
+/* Buttons */
+.btn-primary {
+  @apply px-4 py-2 rounded-lg font-medium transition-all duration-150 text-sm;
+  background: var(--blue);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+.btn-primary:hover { opacity: 0.88; }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-secondary {
+  @apply px-4 py-2 rounded-lg font-medium transition-all duration-150 text-sm;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+.btn-secondary:hover { background: var(--surface-4); border-color: rgba(10, 132, 255, 0.4); }
+
+.btn-ghost {
+  @apply px-4 py-2 rounded-lg font-medium transition-all duration-150 text-sm;
+  background: transparent;
+  color: var(--text-secondary);
+}
+.btn-ghost:hover { background: var(--surface-3); color: var(--text-primary); }
+
+.btn-danger {
+  @apply px-3 py-1.5 rounded-lg font-medium transition-all duration-150 text-sm;
+  background: transparent;
+  color: var(--red);
+}
+.btn-danger:hover { background: rgba(255, 69, 58, 0.12); }
+
+/* Input */
+.input {
+  @apply w-full px-3 py-2.5 rounded-lg outline-none transition-all duration-150 text-sm;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-family: inherit;
+}
+.input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.2);
+}
+.input::placeholder { color: var(--text-tertiary); }
+
+/* Skeleton shimmer */
+.skeleton {
+  background: linear-gradient(90deg, var(--surface-3) 25%, var(--surface-4) 50%, var(--surface-3) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Prose in research/chat */
+.prose-vision {
+  @apply text-sm leading-relaxed;
+  color: var(--text-primary);
+}
+.prose-vision h1, .prose-vision h2, .prose-vision h3 {
+  color: var(--text-primary);
+  font-weight: 600;
+  margin-top: 1.25em;
+  margin-bottom: 0.5em;
+}
+.prose-vision code {
+  background: var(--surface-3);
+  padding: 1px 5px;
+  border-radius: 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em;
+}
+.prose-vision pre {
+  background: var(--surface-2);
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+  border: 1px solid var(--border);
+}
+.prose-vision a { color: var(--blue); }
+.prose-vision strong { color: var(--text-primary); font-weight: 600; }
+.prose-vision blockquote {
+  border-left: 3px solid var(--border);
+  padding-left: 12px;
+  color: var(--text-secondary);
+}
+.prose-vision ul, .prose-vision ol { padding-left: 1.25em; }
+.prose-vision li { margin-bottom: 0.25em; }
+
+/* Grid background (subtle, for landing only) */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(10, 132, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(10, 132, 255, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* Threat level bands */
+.threat-critical { border-top: 3px solid var(--red); }
+.threat-high     { border-top: 3px solid var(--orange); }
+.threat-medium   { border-top: 3px solid var(--yellow); }
+.threat-low      { border-top: 3px solid var(--green); }
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes spring-in {
+  0%   { opacity: 0; transform: scale(0.95) translateY(8px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes slide-up {
+  0%   { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.animate-spring-in { animation: spring-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.animate-slide-up  { animation: slide-up 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+.animate-fade-in   { animation: fade-in 0.2s ease forwards; }

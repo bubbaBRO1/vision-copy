@@ -1,0 +1,126 @@
+version: "3.9"
+
+services:
+  vision-postgres:
+    image: postgres:16-alpine
+    container_name: vision-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-vision}
+      POSTGRES_USER: ${POSTGRES_USER:-vision}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-vision}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  vision-redis:
+    image: redis:7-alpine
+    container_name: vision-redis
+    restart: always
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  vision-ollama:
+    image: ollama/ollama
+    container_name: vision-ollama
+    restart: always
+    volumes:
+      - ollama_models:/root/.ollama
+    ports:
+      - "11434:11434"
+    entrypoint: ["/bin/sh", "-c", "ollama serve & sleep 5 && ollama pull llama3:8b && ollama pull llava:13b && ollama pull mistral:7b && wait"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:11434/api/tags || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
+
+  vision-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: vision-backend
+    restart: always
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-vision}:${POSTGRES_PASSWORD:-changeme}@vision-postgres:5432/${POSTGRES_DB:-vision}
+      REDIS_URL: redis://vision-redis:6379
+      OLLAMA_URL: http://vision-ollama:11434
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 15
+      REFRESH_TOKEN_EXPIRE_DAYS: 30
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@vision.local}
+      HCAPTCHA_SECRET: ${HCAPTCHA_SECRET:-}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      TINEYE_API_KEY: ${TINEYE_API_KEY:-}
+      GEOSPY_API_KEY: ${GEOSPY_API_KEY:-}
+      SHODAN_API_KEY: ${SHODAN_API_KEY:-}
+      VIRUSTOTAL_API_KEY: ${VIRUSTOTAL_API_KEY:-}
+      HIBP_API_KEY: ${HIBP_API_KEY:-}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      OPEN_REGISTRATION: ${OPEN_REGISTRATION:-false}
+      UPLOAD_DIR: /tmp/vision-uploads
+    volumes:
+      - upload_data:/tmp/vision-uploads
+    depends_on:
+      vision-postgres:
+        condition: service_healthy
+      vision-redis:
+        condition: service_healthy
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  vision-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: vision-frontend
+    restart: always
+    expose:
+      - "80"
+
+  vision-nginx:
+    image: nginx:alpine
+    container_name: vision-nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - vision-backend
+      - vision-frontend
+
+volumes:
+  postgres_data:
+  redis_data:
+  ollama_models:
+  upload_data:
